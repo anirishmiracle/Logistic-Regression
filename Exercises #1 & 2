@@ -1,0 +1,95 @@
+NH11 <- readRDS("~/Downloads/logistic_regression/dataSets/NatHealth2011.rds")
+labs <- attributes(NH11)$labels
+str(NH11$hypev)
+levels(NH11$hypev)
+NH11$hypev <- factor(NH11$hypev, levels=c("2 No", "1 Yes"))
+hyp.out <- glm(hypev~age_p+sex+sleep+bmi,
+               +                data=NH11, family="binomial")
+coef(summary(hyp.out))
+hyp.out.tab <- coef(summary(hyp.out))
+hyp.out.tab[, "Estimate"] <- exp(coef(hyp.out))
+hyp.out.tab
+predDat <- with(NH11,
+                expand.grid(age_p = c(33, 63),
+                            sex = "2 Female",
+                            bmi = mean(bmi, na.rm = TRUE),
+                            sleep = mean(sleep, na.rm = TRUE)))
+cbind(predDat, predict(hyp.out, type = "response",
+                       se.fit = TRUE, interval="confidence",
+                       newdata = predDat))
+library(effects)
+plot(allEffects(hyp.out))
+
+# Exc. 1 & 2
+NH11$everwrk1 <- factor(gsub("1 Yes", NA, NH11$everwrk))
+NH11$everwrk2 <- factor(gsub("2 No", NA, NH11$everwrk))
+NH11$everwrk7 <- factor(gsub("7 Refused", NA, NH11$everwrk))
+NH11$everwrk8 <- factor(gsub("8 Not ascertained", NA, NH11$everwrk))
+NH11$everwrk9 <- factor(gsub("9 Don't know", NA, NH11$everwrk))
+ever.out <- glm(everwrk~age_p+r_maritl,
++                data=NH11, family="binomial")
+coef(summary(ever.out))
+Estimate  Std. Error     z value
+(Intercept)                                 -0.45415880 0.093080415  -4.8792091
+age_p                                       -0.02934571 0.001633363 -17.9664355
+r_maritl2 Married - spouse not in household  0.08145957 0.213835768   0.3809446
+r_maritl4 Widowed                            0.68688235 0.083623142   8.2140223
+r_maritl5 Divorced                          -0.73211254 0.111144918  -6.5870087
+r_maritl6 Separated                         -0.11644701 0.150189947  -0.7753316
+r_maritl7 Never married                      0.35522972 0.068864919   5.1583553
+r_maritl8 Living with partner               -0.44622604 0.137653720  -3.2416562
+r_maritl9 Unknown marital status             0.54103849 0.457837543   1.1817259
+Pr(>|z|)
+(Intercept)                                 1.065121e-06
+age_p                                       3.569242e-72
+r_maritl2 Married - spouse not in household 7.032444e-01
+r_maritl4 Widowed                           2.138998e-16
+r_maritl5 Divorced                          4.487759e-11
+r_maritl6 Separated                         4.381438e-01
+r_maritl7 Never married                     2.491285e-07
+r_maritl8 Living with partner               1.188373e-03
+r_maritl9 Unknown marital status            2.373145e-01
+ever.out.tab <- coef(summary(ever.out))
+ever.out.tab[, "Estimate"] <- exp(coef(ever.out))
+ever.out.tab
+Estimate  Std. Error     z value
+(Intercept)                                 0.6349819 0.093080415  -4.8792091
+age_p                                       0.9710807 0.001633363 -17.9664355
+r_maritl2 Married - spouse not in household 1.0848694 0.213835768   0.3809446
+r_maritl4 Widowed                           1.9875095 0.083623142   8.2140223
+r_maritl5 Divorced                          0.4808920 0.111144918  -6.5870087
+r_maritl6 Separated                         0.8900773 0.150189947  -0.7753316
+r_maritl7 Never married                     1.4265083 0.068864919   5.1583553
+r_maritl8 Living with partner               0.6400391 0.137653720  -3.2416562
+r_maritl9 Unknown marital status            1.7177898 0.457837543   1.1817259
+Pr(>|z|)
+(Intercept)                                 1.065121e-06
+age_p                                       3.569242e-72
+r_maritl2 Married - spouse not in household 7.032444e-01
+r_maritl4 Widowed                           2.138998e-16
+r_maritl5 Divorced                          4.487759e-11
+r_maritl6 Separated                         4.381438e-01
+r_maritl7 Never married                     2.491285e-07
+r_maritl8 Living with partner               1.188373e-03
+r_maritl9 Unknown marital status            2.373145e-01
+levels(NH11$r_maritl)
+[1] "0 Under 14 years"                        "1 Married - spouse in household"        
+[3] "2 Married - spouse not in household"     "3 Married - spouse in household unknown"
+[5] "4 Widowed"                               "5 Divorced"                             
+[7] "6 Separated"                             "7 Never married"                        
+[9] "8 Living with partner"                   "9 Unknown marital status"
+predDat2 <- with(NH11,
++                 expand.grid(r_maritl = c("1 Married - spouse in household", "2 Married - spouse not in household", "4 Widowed", "5 Divorced", "6 Separated", "8 Living with partner", "9 Unknown marital status"),
++                             age_p = mean(age_p, na.rm = TRUE)))
+cbind(predDat2, predict(ever.out, type = "response",
++                        se.fit = TRUE, interval="confidence",
++                        newdata = predDat2))
+r_maritl    age_p        fit      se.fit residual.scale
+1     1 Married - spouse in household 48.10983 0.13400804 0.005009521              1
+2 2 Married - spouse not in household 48.10983 0.14374636 0.025782825              1
+3                           4 Widowed 48.10983 0.23521523 0.013295769              1
+4                          5 Divorced 48.10983 0.06926155 0.006630955              1
+5                         6 Separated 48.10983 0.12106080 0.015298167              1
+6               8 Living with partner 48.10983 0.09011744 0.010666304              1
+7            9 Unknown marital status 48.10983 0.20999802 0.075631388              1
+plot(allEffects(ever.out))
